@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import useFetchMain from "../../hooks/Main/useFetchMain";
+import React, { useState, useRef, useEffect } from 'react';
+import useSendMessage from '../../hooks/useSendMessage'
 import './index.css'
 
 /**
@@ -8,139 +8,91 @@ import './index.css'
  * class ChatMessage {
  *   isMine: boolean;
  *   content: string;
- *   createdAt: Date;
  *   user: {
  *     name: string;
  *   }
  * }
  */
+const ANU_BOT = {
+  name: "ANU bot"
+}
 
-const makeMsg = (msg) => {
-  console.log(msg);
-  return (
-    <div>
-      {msg}
+const ME = {
+  name: "나"
+}
+
+const WELCOME_MESSAGE = {
+  isMine: false,
+  content: "안동대학교 챗봇입니다. 궁금한 내용을 물어보세요",
+  user: ANU_BOT,
+}
+
+const LOADING_MESSAGE = {
+  isMine: false,
+  content: (
+    <div className='chat-message-loading'>
+      <div />
+      <div />
+      <div />
     </div>
-  )
+  ),
+  user: ANU_BOT,
 }
 
 
-const CHAT_MESSAGES = [
-  {
-    isMine: true,
-    content: '안동대학교에 대해 궁금합니다.',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: true,
-    content: 'world',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: true,
-    content: 'world',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: true,
-    content: 'world',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: true,
-    content: 'world',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: true,
-    content: 'world',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: true,
-    content: 'world',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: true,
-    content: 'world',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: false,
-    content: '예시 답안을 적는 칸입니다.',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: false,
-    content: 'hello',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: false,
-    content: 'hello',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  },
-  {
-    isMine: false,
-    content: 'hello',
-    createdAt: new Date(),
-    user: {
-      name: 'ANU',
-    },
-  }
-];
-
 const Main = () => {
   const [value, setValue] = useState("");
-  const [chatMessages, setChatMessages] = useState(CHAT_MESSAGES);
+  const [chatMessages, setChatMessages] = useState([WELCOME_MESSAGE]);
+  const scrollRef = useRef(null);
 
-  const { handleSendMessage, sendMessageLoading, replyMessage } = useFetchMain();
+  const { isLoading, sendMessage } = useSendMessage();
 
-  // TODO 나중에 USER_ID 가져오는 커스텀 훅 만들기
-  const USER_ID = "6f0ec697-efc5-4178-366e-08db3a9230d7";
+  const onSendMessage = async (message) => {
+    if (isLoading) {
+      return;
+    }
+
+    setValue('');
+
+    setChatMessages(prev => [...prev, {
+      isMine: true,
+      content: message,
+      user: ME,
+    }])
+
+    try {
+      const { content: responseMessage } = await sendMessage(message);
+
+      setChatMessages(prev => [...prev, {
+        isMine: false,
+        content: responseMessage,
+        user: ANU_BOT,
+      }])
+    } catch (error) {
+      setChatMessages(prev => [...prev, {
+        isMine: false,
+        content: '😕 서버 오류로 답변할 수 없습니다. 다시 한번 질문해주세요',
+        user: ANU_BOT,
+      }])
+    }
+  }
+
+  useEffect(() => {
+    if (scrollRef.current !== null) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [chatMessages, isLoading])
 
   return (
     <div className='chat-page'>
       <div className='chat-messages-container'>
         {chatMessages.map((chatMessage, index) => <ChatMessage key={index} chatMessage={chatMessage} />)}
+        {isLoading && <ChatMessage chatMessage={LOADING_MESSAGE} />}
+        <div ref={scrollRef} />
       </div>
       <div className='chat-message-input-container'>
-        <input value={value} onChange={(e) => setValue(e.target.value)} />
-        <button onClick={() => handleSendMessage({ userId: USER_ID, message: value })}>전송</button>
+        <input value={value} onChange={(e) => setValue(e.target.value)} onKeyPress={(e) => { e.code === 'Enter' && onSendMessage(value) }} />
+        <button disabled={isLoading} onClick={() => onSendMessage(value)}>전송</button>
       </div>
     </div >
   )
@@ -162,5 +114,6 @@ const ChatMessage = ({ chatMessage }) => {
     </div>
   )
 }
+
 
 export default Main;
