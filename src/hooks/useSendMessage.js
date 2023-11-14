@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { client } from "../repository/client";
 
 function useSendMessage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -7,15 +8,12 @@ function useSendMessage() {
     try {
       setIsLoading(true);
 
-      const response = await fetch("https://anubot.azurewebsites.net/Chats/Bing", {
-        method: "POST",
-        body: JSON.stringify({ message }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
 
-      const data = await response.json();
+      const { data } = await client.post("/api/v1/chat/webchat", {
+        chat: message,
+      });
+
+      console.log(data)
 
 
       return {

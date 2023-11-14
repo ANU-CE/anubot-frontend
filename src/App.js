@@ -1,27 +1,21 @@
 import { useState } from 'react';
-import './App.css';
 import Main from '../src/components/Main';
+import Login from '../src/components/Login';
+
+import './App.css';
 
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [code, setCode] = useState('');
 
   return (
     <div className="App">
       {
         isAuthenticated ?
           <Main /> :
-          <div>
-            <input value={code} onChange={e => setCode(e.target.value)} />
-            <button onClick={() => {
-              if (code === '1234') {
-                setIsAuthenticated(true);
-              }
-            }}>로그인</button>
-          </div>
+          <Login onSuccess={() => setIsAuthenticated(true)} />
       }
-    </div>
+    </div >
   );
 }
 
