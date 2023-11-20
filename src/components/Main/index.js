@@ -40,10 +40,24 @@ const LOADING_MESSAGE = {
 }
 
 
-const Main = () => {
+const Main = ({ messages }) => {
   const [value, setValue] = useState("");
-  const [chatMessages, setChatMessages] = useState([WELCOME_MESSAGE]);
+  const [chatMessages, setChatMessages] = useState([]);
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    const defaultMessages = messages.map(message => [{
+      isMine: true,
+      content: message.chat,
+      user: ME
+    }, {
+      isMine: false,
+      content: message.reply,
+      user: ANU_BOT
+    }]).flat();
+
+    setChatMessages([...defaultMessages, WELCOME_MESSAGE])
+  }, [messages])
 
   const { isLoading, sendMessage } = useSendMessage();
 
@@ -91,7 +105,7 @@ const Main = () => {
         <div ref={scrollRef} />
       </div>
       <div className='chat-message-input-container'>
-        <input value={value} onChange={(e) => setValue(e.target.value)} onKeyPress={(e) => { e.code === 'Enter' && onSendMessage(value) }} />
+        <input value={value} onChange={(e) => setValue(e.target.value)} onKeyUp={(e) => { e.code === 'Enter' && onSendMessage(value) }} />
         <button disabled={isLoading} onClick={() => onSendMessage(value)}>전송</button>
       </div>
     </div >

@@ -10,15 +10,16 @@ const Login = ({ onSuccess }) => {
 
   const onLogin = async () => {
     try {
-      await client.post('/api/v1/chat/login', {
+      const { data } = await client.post('/api/v1/chat/login', {
         id,
         password: pw,
       })
 
-      onSuccess();
+      onSuccess(data);
     } catch (error) {
       alert("로그인 정보가 일치하지 않습니다")
     }
+
   }
 
   return isRegisterScreen ? <Register onSuccess={() => setIsRegisterScreen(false)} onNavigateToLogin={() => setIsRegisterScreen(false)} /> : (

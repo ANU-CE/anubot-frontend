@@ -8,12 +8,17 @@ import './App.css';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const [recentMessages, setRecentMessages] = useState([]);
+
   return (
     <div className="App">
       {
         isAuthenticated ?
-          <Main /> :
-          <Login onSuccess={() => setIsAuthenticated(true)} />
+          <Main messages={recentMessages} /> :
+          <Login onSuccess={(data) => {
+            setIsAuthenticated(true)
+            setRecentMessages(data.recent_chats ?? [])
+          }} />
       }
     </div >
   );
